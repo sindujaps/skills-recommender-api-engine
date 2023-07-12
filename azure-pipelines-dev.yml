@@ -1,0 +1,18 @@
+resources:
+- repo: self
+
+# Trigger builds on commits to branches
+trigger:
+  - dev
+
+# Do not trigger builds on PRs
+pr: none
+
+extends:
+  template: azure-pipelines-template.yml
+  parameters:
+    dockerRegistryServiceConnection: '6e355485-28e3-480f-a9c7-e5f07af9d127'
+    imageRepository: 'skillsrecommenderapi'
+    containerRegistry: 'skillsrecommendersindujap.azurecr.io'
+    dockerfilePath: '$(Build.SourcesDirectory)/skills-recommender-api/Dockerfile'
+    vmImageName: 'ubuntu-latest'

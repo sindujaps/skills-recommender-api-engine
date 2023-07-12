@@ -1,0 +1,59 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+parameters:
+- name: dockerRegistryServiceConnection
+  type: string
+- name: imageRepository
+  type: string
+- name: containerRegistry
+  type: string
+- name: vmImageName
+  type: string
+  default: 'ubuntu-latest'
+- name: dockerfilePath
+  type: string
+  default: '$(Build.SourcesDirectory)/Dockerfile'
+- name: tags
+  type: string
+  default: '$(Build.BuildId)'
+
+stages:
+- stage: Test
+  displayName: Test stage
+  jobs:
+  - job: Test
+    displayName: Test
+    pool:
+      vmImage: ${{parameters.vmImageName}}
+    steps:
+    - task: UseDotNet@2
+      displayName: "Use .NET Core SDK"
+      inputs:
+        version: "7.0.304"
+    - task: DotNetCoreCLI@2
+      displayName: "Run Tests"
+      inputs:
+        command: test
+        projects: '**/skills-recommender-api/skills-recommender-api.csproj'
+        arguments: '--configuration $(buildConfiguration)'
+
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ${{parameters.vmImageName}}
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: ${{parameters.imageRepository}}
+        dockerfile: ${{parameters.dockerfilePath}}
+        containerRegistry: ${{parameters.dockerRegistryServiceConnection}}
+        tags: |
+          ${{parameters.tags}}
+          latest
